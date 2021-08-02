@@ -89,6 +89,8 @@ namespace Authorization
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddLog4Net();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -99,8 +101,6 @@ namespace Authorization
             {
                 c.SwaggerEndpoint(url: "/swagger/v1.0/swagger.json", "Authentication (V 1.0)");
             });
-
-            loggerFactory.AddLog4Net();
 
             /*app.UseHttpsRedirection();*/
 

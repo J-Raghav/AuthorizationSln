@@ -45,7 +45,7 @@ namespace Authorization.Controllers
                         PortfolioId = customerDetail.PortfolioId,
                         Token = Token
                     };
-
+                    _log4net.Info("Login Successful for "+model.Username);
                     return Ok(loginResponse);
                 }
 
