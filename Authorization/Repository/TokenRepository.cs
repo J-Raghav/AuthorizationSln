@@ -47,7 +47,7 @@ namespace Authorization.Repository
 
         public string GenerateToken(IConfiguration _config, CustomerDetail customerDetail)
         {
-            /*
+
                 var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
                 var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -65,18 +65,20 @@ namespace Authorization.Repository
                 JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
                 JwtSecurityToken token = handler.CreateJwtSecurityToken(descriptor);
                 return handler.WriteToken(token);
-            */
+            
 
+
+            /*
             //Extracting out the issuer, key and expires from appsettings.json file.
             var issuer = _config["Jwt:Issuer"];
             var key = _config["Jwt:Key"];
             var expires = _config["Jwt:Expires"];
 
-            //Step1- Creating the claims array.
-            Claim[] claims = new Claim[]
+            //Step1- Creating the claims list.
+            List<Claim> claims = new List<Claim>()
             {
                  //Adding my custom data.
-                 new Claim("Username",value:customerDetail.Username),
+                 new Claim("Username",customerDetail.Username),
                  new Claim("PortfolioId",value:customerDetail.PortfolioId.ToString())
             };
 
@@ -94,6 +96,7 @@ namespace Authorization.Repository
             //Step5- Return the serialized version of the token.
             JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
             return handler.WriteToken(token);
+            */
         }
 
     }
