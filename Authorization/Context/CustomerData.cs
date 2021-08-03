@@ -17,23 +17,5 @@ namespace Authorization.Context
                 new Customer(){ Username = "t4", Password = "123", PortfolioId=4 },
                 new Customer(){ Username = "t5", Password = "456", PortfolioId=5 },
             };
-
-        public Customer GetByUsername(string username)
-        {
-            return Customers.FirstOrDefault(c =>
-                c.Username == username
-            );
-        }
-
-        public CustomerDetail GetDetailByUsername(string username)
-        {
-            Customer customer = GetByUsername(username);
-
-            return new CustomerDetail()
-            {
-                Username = customer.Username,
-                PortfolioId = customer.PortfolioId
-            };
-        }
     }
 }

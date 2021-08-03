@@ -1,5 +1,6 @@
 using Authorization.Context;
 using Authorization.Repository;
+using Authorization.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -34,9 +35,7 @@ namespace Authorization
         {
             services.AddControllers();
 
-/*          services.AddDbContext<CustomerDbContext>(item => item.UseSqlServer(Configuration.GetConnectionString("conString")));*/
-/*          services.AddDbContext<CustomerDbContext>(item => item.UseInMemoryDatabase(Configuration.GetConnectionString("conString")));*/
-
+            // Adding and Configuring swagger api testing for project
             services.AddSwaggerGen(c =>
             {
                 OpenApiSecurityScheme securityDefinition = new OpenApiSecurityScheme()
@@ -63,13 +62,19 @@ namespace Authorization
                 };
 
                 c.SwaggerDoc(name: "v1.0", new OpenApiInfo { Title = "Authentication", Version = "1.0" });
+                // Configure swagger to use jwt authentication                
                 c.AddSecurityDefinition("jwt_auth", securityDefinition);
                 c.AddSecurityRequirement(securityRequirements);
 
             });
 
-            services.AddTransient<ITokenRepository, TokenRepository>();
+            // Added Auth service
+            services.AddTransient<IAuthService, AuthService>();
+            
+            // Added Customer Repository
+            services.AddTransient<ICustomerRepository, CustomerRepository>();
 
+            // Adding and Configuring Jwt Authentication Scheme
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                        .AddJwtBearer(options =>
                        {
@@ -101,9 +106,6 @@ namespace Authorization
             {
                 c.SwaggerEndpoint(url: "/swagger/v1.0/swagger.json", "Authentication (V 1.0)");
             });
-
-            /*app.UseHttpsRedirection();*/
-
 
             app.UseAuthentication();
 

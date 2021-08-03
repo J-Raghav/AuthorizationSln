@@ -1,5 +1,6 @@
 ﻿using Authorization.Context;
 using Authorization.Models;
+using Authorization.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -10,29 +11,29 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Authorization.Repository
+namespace Authorization.Services
 {
-
-    public class TokenRepository : ITokenRepository
+    public class AuthService : IAuthService
     {
 
-        protected CustomerData _context; 
-        
-        public TokenRepository() {
-            _context = new CustomerData();
+        protected readonly ICustomerRepository _customerRepository;
+
+        public AuthService(ICustomerRepository customerRepository) {
+            _customerRepository = customerRepository;
         }
-
-        public CustomerDetail CheckCredential(LoginModel login)
+        
+        public CustomerDetail ValidateCredential(LoginModel login)
         {
-
+        
             string username = login.Username;
             string password = login.Password;
+            
             CustomerDetail customerDetail = null;
-
-            Customer customer = _context.Customers.Where(customer =>
+            List<Customer> customers = _customerRepository.GetCustomers();
+            
+            Customer customer = customers.FirstOrDefault(customer =>
                 customer.Username == username
-                && customer.Password == password)
-                .FirstOrDefault();
+                && customer.Password == password);
 
             if (customer != null)
             {
@@ -42,30 +43,35 @@ namespace Authorization.Repository
                     PortfolioId = customer.PortfolioId
                 };
             }
+
             return customerDetail;
         }
 
         public string GenerateToken(IConfiguration _config, CustomerDetail customerDetail)
         {
+            // Prepare credentials which will be used to sign the token
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            // Claims to be present in token
+            List<Claim> claims = new List<Claim>() {
+                new Claim(ClaimTypes.Name, customerDetail.Username),
+                new Claim("PortfolioId", customerDetail.PortfolioId.ToString())
+            };
 
-                List<Claim> claims = new List<Claim>() {
-                    new Claim(ClaimTypes.Name, customerDetail.Username),
-                    new Claim("PortfolioId", customerDetail.PortfolioId.ToString())
-                };
-                SecurityTokenDescriptor descriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(claims),
-                    Issuer = _config["Jwt:Issuer"],
-                    Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["Jwt:Expires"])),
-                    SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
-                };
-                JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-                JwtSecurityToken token = handler.CreateJwtSecurityToken(descriptor);
-                return handler.WriteToken(token);
-            
+            SecurityTokenDescriptor descriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Issuer = _config["Jwt:Issuer"],
+                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["Jwt:Expires"])),
+                SigningCredentials = credentials
+            };
+
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+            JwtSecurityToken token = handler.CreateJwtSecurityToken(descriptor);
+
+            return handler.WriteToken(token);
+
 
 
             /*
@@ -98,6 +104,5 @@ namespace Authorization.Repository
             return handler.WriteToken(token);
             */
         }
-
     }
 }

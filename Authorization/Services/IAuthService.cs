@@ -5,13 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Authorization.Repository
+namespace Authorization.Services
 {
-    public interface ITokenRepository
+    public interface IAuthService
     {
-        public CustomerDetail CheckCredential(LoginModel loginModel);
+        public CustomerDetail ValidateCredential(LoginModel loginModel);
 
         public string GenerateToken(IConfiguration _config, CustomerDetail customerDetail);
-
     }
 }
